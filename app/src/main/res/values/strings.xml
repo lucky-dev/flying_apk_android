@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">FlyingApk</string>
+    <string name="title_activity_list_apps">List of apps</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="cancel">Cancel</string>
+    <string name="logout">Logout</string>
+    <string name="refresh">Refresh</string>
+
+    <!-- Errors -->
+    <string name="error_empty_name">Name must not be empty</string>
+    <string name="error_invalid_email">Email is invalid</string>
+    <string name="error_password_too_short">Password must be 6 or more characters</string>
+    <string name="bad_connection">bad connection</string>
+
+</resources>
