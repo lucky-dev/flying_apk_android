@@ -1,11 +1,16 @@
 package com.flyingapk.activity;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -15,34 +20,54 @@ import com.flyingapk.api.ApiHelper;
 import com.flyingapk.api.MapApiFunctions;
 import com.flyingapk.api.wrappers.BaseResponse;
 import com.flyingapk.api.wrappers.ListAndroidAppsResponse;
+import com.flyingapk.fragments.InfoAboutNewAppFragment;
 import com.flyingapk.models.AndroidApp;
 import com.flyingapk.utils.Tools;
+import com.flyingapk.utils.UpdatingManagerHelper;
 
+import java.io.File;
 import java.util.List;
 
-public class ListAppsActivity extends ActionBarActivity implements ApiHelper.ApiCallback {
+public class ListAppsActivity extends ActionBarActivity implements
+        ApiHelper.ApiCallback,
+        UpdatingManagerHelper.UpdatingManagerCallback,
+        InfoAboutNewAppFragment.OnDialogInfoAboutNewAppListener {
 
     private ListView lvListApps;
     private AppsAdapter mAppsAdapter;
     private Menu mOptionsMenu;
     private ApiHelper mApiHelper;
+    private UpdatingManagerHelper mUpdatingManagerHelper;
+    private InfoAboutNewAppFragment mInfoAboutNewAppDialog;
+    private String mFileNewApp;
+    private String mChecksumFileNewApp;
+    private ProgressDialog mProgressDialog;
+    private boolean isDownloadingFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_apps);
 
-        mApiHelper = new ApiHelper(getApplicationContext());
+        mApiHelper = new ApiHelper(this);
         mApiHelper.onCreate();
+
+        mUpdatingManagerHelper = new UpdatingManagerHelper(this);
+        mUpdatingManagerHelper.setListener(this);
 
         lvListApps = (ListView) findViewById(R.id.lv_list_apps);
         mAppsAdapter = new AppsAdapter(Tools.getLayoutInflater(this));
         lvListApps.setAdapter(mAppsAdapter);
+        lvListApps.setOnItemClickListener(mClickOnApp);
     }
 
     @Override
     public void onStart() {
         super.onStart();
+
+        mUpdatingManagerHelper.onStart();
+
+        mUpdatingManagerHelper.checkNewVersion();
 
         mApiHelper.addListener(this);
         mApiHelper.getListApps();
@@ -52,12 +77,13 @@ public class ListAppsActivity extends ActionBarActivity implements ApiHelper.Api
     public void onStop() {
         super.onStop();
 
+        mUpdatingManagerHelper.onStop();
+
         mApiHelper.removeListener(this);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_list_apps, menu);
 
         mOptionsMenu = menu;
@@ -67,16 +93,24 @@ public class ListAppsActivity extends ActionBarActivity implements ApiHelper.Api
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.action_refresh : {
+                mApiHelper.getListApps();
+                return true;
+            }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_refresh) {
-            mApiHelper.getListApps();
-            return true;
-        } else if (id == R.id.action_logout) {
-            Tools.clearAccessToken(this);
-            Tools.navigateUpTo(this, new Intent(this, LoginActivity.class));
-            return true;
+            case R.id.action_about : {
+                Tools.createOkDialog(this,
+                        getString(R.string.about),
+                        String.format(getString(R.string.info_about), Tools.getVersionNameApp(this))).show();
+                return true;
+            }
+
+            case R.id.action_logout : {
+                Tools.clearAccessToken(this);
+                Tools.navigateUpTo(this, new Intent(this, LoginActivity.class));
+                return true;
+            }
         }
 
         return super.onOptionsItemSelected(item);
@@ -95,6 +129,54 @@ public class ListAppsActivity extends ActionBarActivity implements ApiHelper.Api
                 MenuItemCompat.setActionView(refreshItem, null);
             }
         }
+    }
+
+    private ListView.OnItemClickListener mClickOnApp = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            AndroidApp androidApp = mAppsAdapter.getItem(position);
+
+            Intent intent = new Intent(ListAppsActivity.this, ListBuildsActivity.class);
+            intent.putExtra(ListBuildsActivity.INTENT_PARAM_APP_ID, androidApp.getId());
+            intent.putExtra(ListBuildsActivity.INTENT_PARAM_APP_NAME, androidApp.getName());
+            startActivity(intent);
+        }
+    };
+
+    private void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage(getString(R.string.updating_app));
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            mProgressDialog.setMax(100);
+            mProgressDialog.show();
+            mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    if (isDownloadingFile) {
+                        mUpdatingManagerHelper.cancel();
+                        closeProgressDialog();
+                    }
+                }
+            });
+        }
+
+        isDownloadingFile = true;
+    }
+
+    private void closeProgressDialog() {
+        if (mProgressDialog != null) {
+            mProgressDialog.dismiss();
+            mProgressDialog = null;
+        }
+
+        isDownloadingFile = false;
+    }
+
+    @Override
+    public void onUpdateApp() {
+        mUpdatingManagerHelper.update(mFileNewApp, mChecksumFileNewApp);
     }
 
     @Override
@@ -135,4 +217,45 @@ public class ListAppsActivity extends ActionBarActivity implements ApiHelper.Api
             }
         }
     }
+
+    @Override
+    public void onStartCheckingNewApp() {
+    }
+
+    @Override
+    public void onStopCheckingNewApp(boolean isNewVersionApp, String versionApp, String whatsNew, String file, String checksumFile) {
+        if (isNewVersionApp) {
+            mFileNewApp = file;
+            mChecksumFileNewApp = checksumFile;
+
+            mInfoAboutNewAppDialog = InfoAboutNewAppFragment.newInstance(versionApp, whatsNew);
+            mInfoAboutNewAppDialog.setListener(this);
+            mInfoAboutNewAppDialog.show(getSupportFragmentManager(), InfoAboutNewAppFragment.TAG);
+        }
+    }
+
+    @Override
+    public void onStartUpdating() {
+        showProgressDialog();
+    }
+
+    @Override
+    public void onProgressUpdating(int progress) {
+        if (mProgressDialog != null) {
+            mProgressDialog.setProgress(progress);
+        }
+    }
+
+    @Override
+    public void onFinishUpdating(String pathToApp, boolean statusDownloading) {
+        closeProgressDialog();
+
+        if (statusDownloading) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.fromFile(new File(pathToApp)), "application/vnd.android.package-archive");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+    }
+
 }

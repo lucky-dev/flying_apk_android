@@ -89,6 +89,21 @@ public class ApiHelper {
         mContext.startService(apiServiceIntent);
     }
 
+    public void getListBuilds(int appId) {
+        callOnStart(MapApiFunctions.Request.Command.LIST_BUILDS, TAG);
+
+        Intent apiServiceIntent = new Intent(mContext, ApiService.class);
+        apiServiceIntent.putExtra(MapApiFunctions.REQUEST, MapApiFunctions.Request.Command.LIST_BUILDS);
+        apiServiceIntent.putExtra(MapApiFunctions.Request.Params.APP_ID, appId);
+
+        Bundle data = new Bundle();
+        data.putString(MapApiFunctions.Request.Params.TAG_CALLER, TAG);
+
+        apiServiceIntent.putExtras(data);
+
+        mContext.startService(apiServiceIntent);
+    }
+
     // All classes-wrapper are used for communication between Activity <-> Service
     private class ApiResponseReceiver extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
@@ -120,6 +135,15 @@ public class ApiHelper {
                             getParcelable(MapApiFunctions.Response.Params.LIST_APPS_RESULT);
 
                     callOnFinish(MapApiFunctions.Response.Command.LIST_APPS, result, null);
+                } break;
+
+                case MapApiFunctions.Response.Command.LIST_BUILDS : {
+                    Bundle data = intent.getExtras();
+
+                    BaseResponse result = (BaseResponse) data.
+                            getParcelable(MapApiFunctions.Response.Params.LIST_BUILDS_RESULT);
+
+                    callOnFinish(MapApiFunctions.Response.Command.LIST_BUILDS, result, null);
                 } break;
             }
         }

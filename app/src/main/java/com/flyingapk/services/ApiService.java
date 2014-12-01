@@ -13,6 +13,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import com.flyingapk.api.MapApiFunctions;
 import com.flyingapk.api.wrappers.ListAndroidAppsResponse;
+import com.flyingapk.api.wrappers.ListBuildsResponse;
 import com.flyingapk.api.wrappers.UserAuthorizationResponse;
 import com.flyingapk.constants.App;
 import com.flyingapk.utils.JsonParser;
@@ -36,13 +37,11 @@ public class ApiService extends Service {
     private JsonParser mJsonParser;
     private RequestBuilder mRequestBuilder;
     private String mAccessToken;
-//    private ORMUtilDB mOrmDB;
 
     @Override
     public void onCreate() {
         mRequestBuilder = new RequestBuilder();
         mJsonParser = new JsonParser();
-//        mOrmDB = ORMUtilDB.getInstance();
 
         mAccessToken = Tools.getAccessToken(this);
 
@@ -224,6 +223,62 @@ public class ApiService extends Service {
 
                         data.clear();
                         data.putParcelable(MapApiFunctions.Response.Params.LIST_APPS_RESULT, result);
+                        data.putString(MapApiFunctions.Response.Params.TAG_CALLER, tag);
+
+                        localIntent.putExtras(data);
+
+                        LocalBroadcastManager.getInstance(ApiService.this).sendBroadcast(localIntent);
+                    }
+                } break;
+
+                case MapApiFunctions.Request.Command.LIST_BUILDS : {
+                    Bundle data = msg.getData();
+
+                    if (!data.isEmpty()) {
+                        int appId = data.getInt(MapApiFunctions.Request.Params.APP_ID);
+                        String tag = data.getString(MapApiFunctions.Request.Params.TAG_CALLER);
+
+                        OkHttpClient client = new OkHttpClient();
+                        client.setConnectTimeout(TIMEOUT_CONNECTION, TimeUnit.SECONDS);
+
+                        Uri uri = new Uri.Builder()
+                                .encodedAuthority(App.API_URL)
+                                .scheme("http")
+                                .path("builds")
+                                .appendQueryParameter("app_id", String.valueOf(appId))
+                                .build();
+
+                        Request request = new Request.Builder()
+                                .headers(mRequestBuilder.getHeaderWithToken(mAccessToken))
+                                .url(uri.toString())
+                                .get()
+                                .build();
+
+                        int code = 0;
+                        String responseJson = null;
+
+                        try {
+                            Response response = client.newCall(request).execute();
+                            code = response.code();
+                            responseJson = response.body().string();
+                        } catch (IOException e) {
+                        }
+
+
+                        //Debug
+                        Tools.logD(TAG, String.valueOf(responseJson));
+
+                        ListBuildsResponse result = mJsonParser.getListBuildsResponse(code, responseJson);
+
+                        if (result.getCode() != 200) {
+                            result.getErrors().add("bad connection");
+                        }
+
+                        Intent localIntent = new Intent(App.API_BROADCAST_ACTION)
+                                .putExtra(MapApiFunctions.RESPONSE, MapApiFunctions.Response.Command.LIST_BUILDS);
+
+                        data.clear();
+                        data.putParcelable(MapApiFunctions.Response.Params.LIST_BUILDS_RESULT, result);
                         data.putString(MapApiFunctions.Response.Params.TAG_CALLER, tag);
 
                         localIntent.putExtras(data);

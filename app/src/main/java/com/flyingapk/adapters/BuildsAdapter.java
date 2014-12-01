@@ -4,19 +4,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.flyingapk.R;
-import com.flyingapk.models.AndroidApp;
 import com.flyingapk.models.Build;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class BuildsAdapter extends BaseAdapter {
 
     private List<Build> mData;
     private LayoutInflater mInflater;
+    private BuildsAdapterListener mBuildsAdapterListener;
 
     public BuildsAdapter(LayoutInflater inflater) {
         mInflater = inflater;
@@ -26,6 +29,10 @@ public class BuildsAdapter extends BaseAdapter {
 
     public void addItem(Build item) {
         mData.add(item);
+    }
+
+    public void setListener(BuildsAdapterListener buildsAdapterListener) {
+        mBuildsAdapterListener = buildsAdapterListener;
     }
 
     @Override
@@ -61,25 +68,46 @@ public class BuildsAdapter extends BaseAdapter {
         if (convertView == null) {
             holder = new ViewHolder();
 
-            convertView = mInflater.inflate(R.layout.item_app, null);
+            convertView = mInflater.inflate(R.layout.item_build, null);
 
-            holder.tvNameApp = (TextView) convertView.findViewById(R.id.tv_name_app);
-            holder.tvDescriptionApp = (TextView) convertView.findViewById(R.id.tv_description_app);
+            holder.tvNumberBuild = (TextView) convertView.findViewById(R.id.tv_number_build);
+            holder.tvDateBuild = (TextView) convertView.findViewById(R.id.tv_date_build);
+            holder.btnDownloadBuild = (Button) convertView.findViewById(R.id.btn_download_build);
+            holder.btnDownloadBuild.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (mBuildsAdapterListener != null) {
+                        int pos = (Integer) v.getTag();
+                        mBuildsAdapterListener.onDownloadBuild(pos);
+                    }
+                }
+            });
 
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.tvNameApp.setText(androidApp.getName());
-        holder.tvDescriptionApp.setText(androidApp.getDescription());
+        holder.tvNumberBuild.setText(String.format("Build #%d", position + 1));
+        holder.tvDateBuild.setText(showDateWithFormat(build.getCreatedTime(), "yyyy-MM-dd HH:mm:ss"));
+        holder.btnDownloadBuild.setTag(position);
 
         return convertView;
     }
 
+    private String showDateWithFormat(Date date, String format) {
+        return new SimpleDateFormat(format).format(date);
+    }
+
     public class ViewHolder {
-        public TextView tvNameApp;
-        public TextView tvDescriptionApp;
+        public TextView tvNumberBuild;
+        public TextView tvDateBuild;
+        public TextView btnDownloadBuild;
+    }
+
+    public interface BuildsAdapterListener {
+        public void onDownloadBuild(int position);
     }
 
 }

@@ -27,8 +27,24 @@
             android:label="@string/title_activity_list_apps" >
         </activity>
 
+        <activity
+            android:name="com.flyingapk.activity.ListBuildsActivity"
+            android:label="@string/title_activity_list_builds" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.flyingapk.activity.ListAppsActivity" />
+        </activity>
+
         <service
             android:name="com.flyingapk.services.ApiService"
+            android:exported="false" />
+
+        <service
+            android:name="com.flyingapk.services.FilesDownloader"
+            android:exported="false" />
+
+        <service
+            android:name="com.flyingapk.services.UpdatingManager"
             android:exported="false" />
 
     </application>

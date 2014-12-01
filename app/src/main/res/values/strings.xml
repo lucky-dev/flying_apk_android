@@ -3,6 +3,7 @@
 
     <string name="app_name">FlyingApk</string>
     <string name="title_activity_list_apps">List of apps</string>
+    <string name="title_activity_list_builds">List of builds</string>
     <string name="name">Name</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
@@ -10,7 +11,16 @@
     <string name="register">Register</string>
     <string name="cancel">Cancel</string>
     <string name="logout">Logout</string>
+    <string name="about">About</string>
     <string name="refresh">Refresh</string>
+    <string name="download">Download</string>
+    <string name="ok">OK</string>
+    <string name="downloading_file">Downloading file&#8230;</string>
+    <string name="updating_app">Updating app&#8230;</string>
+    <string name="update_now">Update Now</string>
+
+    <!-- Info -->
+    <string name="info_about">Version: %s</string>
 
     <!-- Errors -->
     <string name="error_empty_name">Name must not be empty</string>

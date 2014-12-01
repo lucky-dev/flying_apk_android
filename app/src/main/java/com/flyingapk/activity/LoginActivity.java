@@ -1,7 +1,9 @@
 package com.flyingapk.activity;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,16 +15,23 @@ import com.flyingapk.api.ApiHelper;
 import com.flyingapk.api.MapApiFunctions;
 import com.flyingapk.api.wrappers.BaseResponse;
 import com.flyingapk.api.wrappers.UserAuthorizationResponse;
+import com.flyingapk.fragments.InfoAboutNewAppFragment;
 import com.flyingapk.fragments.LoginFragment;
 import com.flyingapk.fragments.RegisterFragment;
 import com.flyingapk.utils.Tools;
+import com.flyingapk.utils.UpdatingManagerHelper;
 
+import java.io.File;
 import java.util.List;
 
 import static com.flyingapk.fragments.LoginFragment.OnDialogLoginListener;
 
-public class LoginActivity extends ActionBarActivity
-        implements ApiHelper.ApiCallback, OnDialogLoginListener, RegisterFragment.OnDialogRegisterListener {
+public class LoginActivity extends ActionBarActivity implements
+        ApiHelper.ApiCallback,
+        OnDialogLoginListener,
+        RegisterFragment.OnDialogRegisterListener,
+        UpdatingManagerHelper.UpdatingManagerCallback,
+        InfoAboutNewAppFragment.OnDialogInfoAboutNewAppListener {
 
     private Button btnLogin;
     private Button btnRegister;
@@ -31,6 +40,11 @@ public class LoginActivity extends ActionBarActivity
     private LoginFragment mLoginDialog;
     private RegisterFragment mRegisterDialog;
     private String mEmail;
+    private UpdatingManagerHelper mUpdatingManagerHelper;
+    private InfoAboutNewAppFragment mInfoAboutNewAppDialog;
+    private String mFileNewApp;
+    private String mChecksumFileNewApp;
+    private boolean isDownloadingFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +59,11 @@ public class LoginActivity extends ActionBarActivity
 
         getSupportActionBar().hide();
 
-        mApiHelper = new ApiHelper(getApplicationContext());
+        mApiHelper = new ApiHelper(this);
         mApiHelper.onCreate();
+
+        mUpdatingManagerHelper = new UpdatingManagerHelper(this);
+        mUpdatingManagerHelper.setListener(this);
 
         btnLogin = (Button) findViewById(R.id.btn_login);
         btnLogin.setOnClickListener(mClickOnLogin);
@@ -59,12 +76,18 @@ public class LoginActivity extends ActionBarActivity
     public void onStart() {
         super.onStart();
 
+        mUpdatingManagerHelper.onStart();
+
+        mUpdatingManagerHelper.checkNewVersion();
+
         mApiHelper.addListener(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
+
+        mUpdatingManagerHelper.onStop();
 
         mApiHelper.removeListener(this);
     }
@@ -107,6 +130,42 @@ public class LoginActivity extends ActionBarActivity
             mRegisterDialog.show(getSupportFragmentManager(), RegisterFragment.TAG);
         }
     };
+
+    private void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage(getString(R.string.updating_app));
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            mProgressDialog.setMax(100);
+            mProgressDialog.show();
+            mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    if (isDownloadingFile) {
+                        mUpdatingManagerHelper.cancel();
+                        closeProgressDialog();
+                    }
+                }
+            });
+        }
+
+        isDownloadingFile = true;
+    }
+
+    private void closeProgressDialog() {
+        if (mProgressDialog != null) {
+            mProgressDialog.dismiss();
+            mProgressDialog = null;
+        }
+
+        isDownloadingFile = false;
+    }
+
+    @Override
+    public void onUpdateApp() {
+        mUpdatingManagerHelper.update(mFileNewApp, mChecksumFileNewApp);
+    }
 
     @Override
     public void onStart(int code, String tag) {
@@ -161,6 +220,46 @@ public class LoginActivity extends ActionBarActivity
             }
         }
 
+    }
+
+    @Override
+    public void onStartCheckingNewApp() {
+    }
+
+    @Override
+    public void onStopCheckingNewApp(boolean isNewVersionApp, String versionApp, String whatsNew, String file, String checksumFile) {
+        if (isNewVersionApp) {
+            mFileNewApp = file;
+            mChecksumFileNewApp = checksumFile;
+
+            mInfoAboutNewAppDialog = InfoAboutNewAppFragment.newInstance(versionApp, whatsNew);
+            mInfoAboutNewAppDialog.setListener(this);
+            mInfoAboutNewAppDialog.show(getSupportFragmentManager(), InfoAboutNewAppFragment.TAG);
+        }
+    }
+
+    @Override
+    public void onStartUpdating() {
+        showProgressDialog();
+    }
+
+    @Override
+    public void onProgressUpdating(int progress) {
+        if (mProgressDialog != null) {
+            mProgressDialog.setProgress(progress);
+        }
+    }
+
+    @Override
+    public void onFinishUpdating(String pathToApp, boolean statusDownloading) {
+        closeProgressDialog();
+
+        if (statusDownloading) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.fromFile(new File(pathToApp)), "application/vnd.android.package-archive");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
     }
 
 }

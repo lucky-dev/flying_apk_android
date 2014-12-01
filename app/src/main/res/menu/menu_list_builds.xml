@@ -9,14 +9,4 @@
         android:icon="@drawable/ic_refresh"
         app:showAsAction="ifRoom"/>
 
-    <item
-        android:id="@+id/action_about"
-        android:title="@string/about"
-        app:showAsAction="never"/>
-
-    <item
-        android:id="@+id/action_logout"
-        android:title="@string/logout"
-        app:showAsAction="never"/>
-
 </menu>
