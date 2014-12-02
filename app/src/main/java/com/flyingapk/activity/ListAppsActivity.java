@@ -20,6 +20,7 @@ import com.flyingapk.api.ApiHelper;
 import com.flyingapk.api.MapApiFunctions;
 import com.flyingapk.api.wrappers.BaseResponse;
 import com.flyingapk.api.wrappers.ListAndroidAppsResponse;
+import com.flyingapk.api.wrappers.UserLogoutResponse;
 import com.flyingapk.fragments.InfoAboutNewAppFragment;
 import com.flyingapk.models.AndroidApp;
 import com.flyingapk.utils.Tools;
@@ -42,6 +43,7 @@ public class ListAppsActivity extends ActionBarActivity implements
     private String mFileNewApp;
     private String mChecksumFileNewApp;
     private ProgressDialog mProgressDialog;
+    private ProgressDialog mProgressDialogLogout;
     private boolean isDownloadingFile;
 
     @Override
@@ -107,8 +109,7 @@ public class ListAppsActivity extends ActionBarActivity implements
             }
 
             case R.id.action_logout : {
-                Tools.clearAccessToken(this);
-                Tools.navigateUpTo(this, new Intent(this, LoginActivity.class));
+                mApiHelper.logout();
                 return true;
             }
         }
@@ -183,6 +184,10 @@ public class ListAppsActivity extends ActionBarActivity implements
     public void onStart(int code, String tag) {
         if (code == MapApiFunctions.Request.Command.LIST_APPS) {
             setRefreshMenuItem(true);
+        } else if (code == MapApiFunctions.Request.Command.LOGOUT) {
+            if (mProgressDialogLogout == null) {
+                mProgressDialogLogout = Tools.getIndeterminateProgressDialog(this);
+            }
         }
     }
 
@@ -205,6 +210,30 @@ public class ListAppsActivity extends ActionBarActivity implements
             } else {
                 List<String> listErrors = result.getErrors();
                 StringBuffer errors = new StringBuffer();
+                for (int i = 0; i < listErrors.size(); i++) {
+                    errors.append(listErrors.get(i));
+
+                    if ((i < listErrors.size() - 1) || (listErrors.size() > 1)) {
+                        errors.append("\n");
+                    }
+                }
+
+                Tools.showToast(this, errors.toString(), Toast.LENGTH_LONG);
+            }
+        } else if (code == MapApiFunctions.Response.Command.LOGOUT) {
+            if (mProgressDialogLogout != null) {
+                mProgressDialogLogout.dismiss();
+                mProgressDialogLogout = null;
+            }
+
+            UserLogoutResponse result = (UserLogoutResponse) struct;
+
+            if (result.getCode() == 200) {
+                Tools.clearAccessToken(this);
+                Tools.navigateUpTo(this, new Intent(this, LoginActivity.class));
+            } else {
+                List<String> listErrors = result.getErrors();
+                StringBuilder errors = new StringBuilder();
                 for (int i = 0; i < listErrors.size(); i++) {
                     errors.append(listErrors.get(i));
 

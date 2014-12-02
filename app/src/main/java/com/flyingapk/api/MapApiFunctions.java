@@ -19,6 +19,7 @@ public interface MapApiFunctions {
             int REGISTER = 2;
             int LIST_APPS = 3;
             int LIST_BUILDS = 4;
+            int LOGOUT = 5;
         }
     }
 
@@ -28,6 +29,7 @@ public interface MapApiFunctions {
             String AUTHORIZATION_RESULT = "authorization_result";
             String LIST_APPS_RESULT = "list_apps_result";
             String LIST_BUILDS_RESULT = "list_builds_result";
+            String LOGOUT_RESULT = "logout_result";
         }
 
         interface Command {
@@ -35,6 +37,7 @@ public interface MapApiFunctions {
             int REGISTER = 2;
             int LIST_APPS = 3;
             int LIST_BUILDS = 4;
+            int LOGOUT = 5;
         }
     }
 

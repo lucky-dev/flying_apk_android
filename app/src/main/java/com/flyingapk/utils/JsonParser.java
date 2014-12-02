@@ -2,6 +2,7 @@ package com.flyingapk.utils;
 
 import com.flyingapk.api.wrappers.ListAndroidAppsResponse;
 import com.flyingapk.api.wrappers.ListBuildsResponse;
+import com.flyingapk.api.wrappers.UserLogoutResponse;
 import com.flyingapk.models.AndroidApp;
 import com.flyingapk.api.wrappers.UserAuthorizationResponse;
 import com.flyingapk.models.Build;
@@ -118,6 +119,30 @@ public class JsonParser {
         }
 
         return listBuildsResponse;
+    }
+
+    public UserLogoutResponse getUserLogoutResponse(int responseCode, String response) {
+        UserLogoutResponse userLogoutResponse = new UserLogoutResponse(responseCode);
+
+        userLogoutResponse.setCode(responseCode);
+
+        if (response == null) {
+            return userLogoutResponse;
+        }
+
+        try {
+            JSONObject jRoot = new JSONObject(response);
+
+            userLogoutResponse.setApiVersion(JsonUtil.getIntByKeyJson(jRoot, "api_version"));
+
+            JSONObject jResponse = JsonUtil.getObjectByKeyJson(jRoot, "response");
+
+            userLogoutResponse.setErrors(parseErrors(JsonUtil.getArrayByKeyJson(jResponse, "errors")));
+        } catch (JSONException e) {
+            return userLogoutResponse;
+        }
+
+        return userLogoutResponse;
     }
 
     private List<String> parseErrors(JSONArray errors) throws JSONException {

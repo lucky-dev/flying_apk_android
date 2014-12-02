@@ -75,6 +75,20 @@ public class ApiHelper {
         mContext.startService(apiServiceIntent);
     }
 
+    public void logout() {
+        callOnStart(MapApiFunctions.Request.Command.LOGOUT, TAG);
+
+        Intent apiServiceIntent = new Intent(mContext, ApiService.class);
+        apiServiceIntent.putExtra(MapApiFunctions.REQUEST, MapApiFunctions.Request.Command.LOGOUT);
+
+        Bundle data = new Bundle();
+        data.putString(MapApiFunctions.Request.Params.TAG_CALLER, TAG);
+
+        apiServiceIntent.putExtras(data);
+
+        mContext.startService(apiServiceIntent);
+    }
+
     public void getListApps() {
         callOnStart(MapApiFunctions.Request.Command.LIST_APPS, TAG);
 
@@ -126,6 +140,15 @@ public class ApiHelper {
                             getParcelable(MapApiFunctions.Response.Params.AUTHORIZATION_RESULT);
 
                     callOnFinish(MapApiFunctions.Response.Command.REGISTER, result, null);
+                } break;
+
+                case MapApiFunctions.Response.Command.LOGOUT : {
+                    Bundle data = intent.getExtras();
+
+                    BaseResponse result = (BaseResponse) data.
+                            getParcelable(MapApiFunctions.Response.Params.LOGOUT_RESULT);
+
+                    callOnFinish(MapApiFunctions.Response.Command.LOGOUT, result, null);
                 } break;
 
                 case MapApiFunctions.Response.Command.LIST_APPS : {

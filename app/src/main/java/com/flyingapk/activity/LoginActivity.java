@@ -207,7 +207,7 @@ public class LoginActivity extends ActionBarActivity implements
                 Tools.navigateUpTo(this, new Intent(this, ListAppsActivity.class));
             } else {
                 List<String> listErrors = result.getErrors();
-                StringBuffer errors = new StringBuffer();
+                StringBuilder errors = new StringBuilder();
                 for (int i = 0; i < listErrors.size(); i++) {
                     errors.append(listErrors.get(i));
 
