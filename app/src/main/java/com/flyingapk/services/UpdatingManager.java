@@ -11,7 +11,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
-import android.text.TextUtils;
 
 import com.flyingapk.constants.App;
 import com.flyingapk.utils.JsonUtil;
@@ -79,9 +78,9 @@ public class UpdatingManager extends Service {
 
                     // Get info about updating of app
                     Uri uriUpdInfo = new Uri.Builder()
-                            .authority(App.UPD_URL)
+                            .encodedAuthority(App.ENDPOINT_URL)
                             .scheme("http")
-                            .path("/files/upd_info.json")
+                            .path("upd_app/upd_info.json")
                             .build();
 
 
@@ -140,9 +139,9 @@ public class UpdatingManager extends Service {
                         }
 
                         Uri uri = new Uri.Builder()
-                                .authority(App.UPD_URL)
+                                .encodedAuthority(App.ENDPOINT_URL)
                                 .scheme("http")
-                                .path("/files/" + file)
+                                .path("upd_app/" + file)
                                 .build();
 
                         boolean status = downloadFile(uri.toString(), getUpdateDir().getAbsolutePath(), file, checksum != null, checksum);

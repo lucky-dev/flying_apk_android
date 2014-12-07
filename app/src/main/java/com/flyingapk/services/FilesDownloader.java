@@ -77,9 +77,9 @@ public class FilesDownloader extends Service {
                 }
 
                 Uri uri = new Uri.Builder()
-                        .encodedAuthority(App.API_URL)
+                        .encodedAuthority(App.ENDPOINT_URL)
                         .scheme("http")
-                        .path(file)
+                        .path("files/" + file)
                         .build();
 
                 boolean status = downloadFile(uri.toString(), getUpdateDir().getAbsolutePath(), file, checksum != null, checksum);
