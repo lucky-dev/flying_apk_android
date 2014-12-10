@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.flyingapk.BuildConfig;
 import com.flyingapk.api.MapApiFunctions;
 import com.flyingapk.api.wrappers.ListAndroidAppsResponse;
 import com.flyingapk.api.wrappers.ListBuildsResponse;
@@ -73,7 +74,7 @@ public class ApiService extends Service {
                         client.setConnectTimeout(TIMEOUT_CONNECTION, TimeUnit.SECONDS);
 
                         Uri uri = new Uri.Builder()
-                                .encodedAuthority(App.ENDPOINT_URL)
+                                .encodedAuthority(BuildConfig.ENDPOINT_URL)
                                 .scheme("http")
                                 .path("api/login")
                                 .build();
@@ -132,7 +133,7 @@ public class ApiService extends Service {
                         client.setConnectTimeout(TIMEOUT_CONNECTION, TimeUnit.SECONDS);
 
                         Uri uri = new Uri.Builder()
-                                .encodedAuthority(App.ENDPOINT_URL)
+                                .encodedAuthority(BuildConfig.ENDPOINT_URL)
                                 .scheme("http")
                                 .path("api/register")
                                 .build();
@@ -188,7 +189,7 @@ public class ApiService extends Service {
                         client.setConnectTimeout(TIMEOUT_CONNECTION, TimeUnit.SECONDS);
 
                         Uri uri = new Uri.Builder()
-                                .encodedAuthority(App.ENDPOINT_URL)
+                                .encodedAuthority(BuildConfig.ENDPOINT_URL)
                                 .scheme("http")
                                 .path("api/android_apps")
                                 .build();
@@ -243,7 +244,7 @@ public class ApiService extends Service {
                         client.setConnectTimeout(TIMEOUT_CONNECTION, TimeUnit.SECONDS);
 
                         Uri uri = new Uri.Builder()
-                                .encodedAuthority(App.ENDPOINT_URL)
+                                .encodedAuthority(BuildConfig.ENDPOINT_URL)
                                 .scheme("http")
                                 .path("api/builds")
                                 .appendQueryParameter("app_id", String.valueOf(appId))
@@ -298,7 +299,7 @@ public class ApiService extends Service {
                         client.setConnectTimeout(TIMEOUT_CONNECTION, TimeUnit.SECONDS);
 
                         Uri uri = new Uri.Builder()
-                                .encodedAuthority(App.ENDPOINT_URL)
+                                .encodedAuthority(BuildConfig.ENDPOINT_URL)
                                 .scheme("http")
                                 .path("api/logout")
                                 .build();

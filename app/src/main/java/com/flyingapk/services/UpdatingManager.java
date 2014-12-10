@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.flyingapk.BuildConfig;
 import com.flyingapk.constants.App;
 import com.flyingapk.utils.JsonUtil;
 import com.flyingapk.utils.MapUpdatingManager;
@@ -78,7 +79,7 @@ public class UpdatingManager extends Service {
 
                     // Get info about updating of app
                     Uri uriUpdInfo = new Uri.Builder()
-                            .encodedAuthority(App.ENDPOINT_URL)
+                            .encodedAuthority(BuildConfig.ENDPOINT_URL)
                             .scheme("http")
                             .path("upd_app/upd_info.json")
                             .build();
@@ -139,7 +140,7 @@ public class UpdatingManager extends Service {
                         }
 
                         Uri uri = new Uri.Builder()
-                                .encodedAuthority(App.ENDPOINT_URL)
+                                .encodedAuthority(BuildConfig.ENDPOINT_URL)
                                 .scheme("http")
                                 .path("upd_app/" + file)
                                 .build();

@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.flyingapk.BuildConfig;
 import com.flyingapk.constants.App;
 import com.flyingapk.utils.MapFilesDownloader;
 import com.flyingapk.utils.Tools;
@@ -77,7 +78,7 @@ public class FilesDownloader extends Service {
                 }
 
                 Uri uri = new Uri.Builder()
-                        .encodedAuthority(App.ENDPOINT_URL)
+                        .encodedAuthority(BuildConfig.ENDPOINT_URL)
                         .scheme("http")
                         .path("files/" + file)
                         .build();
