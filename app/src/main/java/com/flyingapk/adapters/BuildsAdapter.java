@@ -89,7 +89,7 @@ public class BuildsAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.tvNumberBuild.setText(String.format("Build #%d", position + 1));
+        holder.tvNumberBuild.setText(String.format("Build #%d", mData.size() - position));
         holder.tvDateBuild.setText(showDateWithFormat(build.getCreatedTime(), "yyyy-MM-dd HH:mm:ss"));
         holder.btnDownloadBuild.setTag(position);
 

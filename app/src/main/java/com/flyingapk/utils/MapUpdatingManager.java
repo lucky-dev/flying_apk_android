@@ -24,7 +24,7 @@ public interface MapUpdatingManager {
             String PATH_TO_APP = "path_to_app";
             String STATUS_UPDATING = "status_downloading";
             String IS_NEW_VERSION_APP = "is_new_version_app";
-            String VERSION_APP = "version_app";
+            String VERSION_NAME_APP = "version_name_app";
             String FILE = "file";
             String CHECKSUM_FILE = "checksum_file";
             String WHATS_NEW = "whats_new";

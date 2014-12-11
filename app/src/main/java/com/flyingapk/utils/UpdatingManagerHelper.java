@@ -74,7 +74,7 @@ public class UpdatingManagerHelper {
                 case MapUpdatingManager.Response.Command.STOP_CHECKING_NEW_VERSION_APP : {
                     if (mUpdatingManagerListener != null) {
                         boolean isNewVersionApp = intent.getExtras().getBoolean(MapUpdatingManager.Response.Params.IS_NEW_VERSION_APP);
-                        String versionApp = intent.getExtras().getString(MapUpdatingManager.Response.Params.VERSION_APP);
+                        String versionApp = intent.getExtras().getString(MapUpdatingManager.Response.Params.VERSION_NAME_APP);
                         String whatsNew = intent.getExtras().getString(MapUpdatingManager.Response.Params.WHATS_NEW);
                         String file = intent.getExtras().getString(MapUpdatingManager.Response.Params.FILE);
                         String checksumFile = intent.getExtras().getString(MapUpdatingManager.Response.Params.CHECKSUM_FILE);

@@ -42,6 +42,7 @@ public class UpdatingManager extends Service {
     private static final int READ_TIMEOUT = 15;
 
     private static final String VERSION_APP = "version_app";
+    private static final String VERSION_NAME_APP = "version_name_app";
     private static final String WHATS_NEW = "whats_new";
     private static final String FILE = "file";
     private static final String CHECKSUM_FILE = "checksum_file";
@@ -109,7 +110,7 @@ public class UpdatingManager extends Service {
 
                     if (versionApp > Tools.getVersionApp(UpdatingManager.this)) {
                         endIntent.putExtra(MapUpdatingManager.Response.Params.IS_NEW_VERSION_APP, true);
-                        endIntent.putExtra(MapUpdatingManager.Response.Params.VERSION_APP, updInfo.get(VERSION_APP));
+                        endIntent.putExtra(MapUpdatingManager.Response.Params.VERSION_NAME_APP, updInfo.get(VERSION_NAME_APP));
                         endIntent.putExtra(MapUpdatingManager.Response.Params.WHATS_NEW, updInfo.get(WHATS_NEW));
                         endIntent.putExtra(MapUpdatingManager.Response.Params.FILE, updInfo.get(FILE));
                         endIntent.putExtra(MapUpdatingManager.Response.Params.CHECKSUM_FILE, updInfo.get(CHECKSUM_FILE));
@@ -310,6 +311,7 @@ public class UpdatingManager extends Service {
             JSONObject jRoot = new JSONObject(response.body().string());
 
             updInfo.put(VERSION_APP, JsonUtil.getStringByKeyJson(jRoot, VERSION_APP));
+            updInfo.put(VERSION_NAME_APP, JsonUtil.getStringByKeyJson(jRoot, VERSION_NAME_APP));
             updInfo.put(WHATS_NEW, JsonUtil.getStringByKeyJson(jRoot, WHATS_NEW));
             updInfo.put(FILE, JsonUtil.getStringByKeyJson(jRoot, FILE));
             updInfo.put(CHECKSUM_FILE, JsonUtil.getStringByKeyJson(jRoot, CHECKSUM_FILE));
