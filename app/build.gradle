@@ -8,8 +8,8 @@ android {
         applicationId "com.flyingapk"
         minSdkVersion 10
         targetSdkVersion 21
-        versionCode 3
-        versionName "0.1.2"
+        versionCode 4
+        versionName "0.1.3"
     }
 
     buildTypes {
@@ -17,7 +17,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
-            buildConfigField "String", "ENDPOINT_URL", "\"88.80.191.20:3005\""
+            buildConfigField "String", "ENDPOINT_URL", "\"127.0.0.1\""
         }
 
         debug {
@@ -27,6 +27,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:21.0.2'
+    compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.squareup.okhttp:okhttp:2.1.0'
 }

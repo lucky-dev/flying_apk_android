@@ -30,8 +30,14 @@
 
         <activity
             android:name="com.flyingapk.activity.ListBuildsActivity"
-            android:label="@string/title_activity_list_builds"
+            android:label="@string/app_name"
             android:screenOrientation="portrait" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="flyingapk" />
+            </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.flyingapk.activity.ListAppsActivity" />

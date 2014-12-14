@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Gravity;
@@ -93,6 +94,14 @@ public class Tools {
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(EMAIL, email);
         editor.commit();
+    }
+
+    public static int getIntFromString(String str) {
+        if (TextUtils.isDigitsOnly(str)) {
+            return Integer.parseInt(str);
+        }
+
+        return 0;
     }
 
     public static String getEmail(Context context) {

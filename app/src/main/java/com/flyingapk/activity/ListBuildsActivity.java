@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,6 +38,8 @@ public class ListBuildsActivity extends ActionBarActivity
     public static final String INTENT_PARAM_APP_ID = "app_id";
     public static final String INTENT_PARAM_APP_NAME = "app_name";
 
+    private static final String URI_HOST = "flyingapk";
+
     private ListView lvListBuilds;
     private BuildsAdapter mBuildsAdapter;
     private Menu mOptionsMenu;
@@ -51,12 +54,35 @@ public class ListBuildsActivity extends ActionBarActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list_apps);
 
-        if (getIntent() != null) {
-            mAppId = getIntent().getIntExtra(INTENT_PARAM_APP_ID, 0);
-            mAppName = getIntent().getStringExtra(INTENT_PARAM_APP_NAME);
+        if (Tools.getAccessToken(this) == null) {
+            Tools.navigateUpTo(this, new Intent(this, LoginActivity.class));
+            return;
         }
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            String action = intent.getAction();
+            // Get params of URL from an email
+            if ((action != null) && (action.equals(Intent.ACTION_VIEW))) {
+                Uri uri = intent.getData();
+
+                // If the current host is not equal URI_HOST then finish this activity
+                String host = uri.getHost();
+                if ((host != null) && (!host.equals(URI_HOST))) {
+                    finish();
+                    return;
+                }
+
+                mAppId = Tools.getIntFromString(uri.getQueryParameter(INTENT_PARAM_APP_ID));
+                mAppName = uri.getQueryParameter(INTENT_PARAM_APP_NAME);
+            } else {
+                mAppId = getIntent().getIntExtra(INTENT_PARAM_APP_ID, 0);
+                mAppName = getIntent().getStringExtra(INTENT_PARAM_APP_NAME);
+            }
+        }
+
+        setContentView(R.layout.activity_list_apps);
 
         getSupportActionBar().setTitle(mAppName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

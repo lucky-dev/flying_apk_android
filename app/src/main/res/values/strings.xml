@@ -3,7 +3,6 @@
 
     <string name="app_name">FlyingApk</string>
     <string name="title_activity_list_apps">List of apps</string>
-    <string name="title_activity_list_builds">List of builds</string>
     <string name="name">Name</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
