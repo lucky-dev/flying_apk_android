@@ -5,51 +5,47 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.Toast;
 
 import com.flyingapk.R;
-import com.flyingapk.adapters.BuildsAdapter;
 import com.flyingapk.api.ApiHelper;
-import com.flyingapk.api.MapApiFunctions;
-import com.flyingapk.api.wrappers.BaseResponse;
-import com.flyingapk.api.wrappers.ListBuildsResponse;
 import com.flyingapk.fragments.BuildDetailsFragment;
+import com.flyingapk.fragments.ListBuildsFragment;
 import com.flyingapk.fragments.RegisterFragment;
-import com.flyingapk.models.Build;
 import com.flyingapk.utils.FilesDownloaderHelper;
 import com.flyingapk.utils.Tools;
 
 import java.io.File;
-import java.util.List;
 
 public class ListBuildsActivity extends ActionBarActivity
-        implements ApiHelper.ApiCallback, FilesDownloaderHelper.FilesDownloaderCallback, BuildsAdapter.BuildsAdapterListener {
+        implements FilesDownloaderHelper.FilesDownloaderCallback {
 
     public static final String TAG = ListBuildsActivity.class.getSimpleName();
 
     public static final String INTENT_PARAM_APP_ID = "app_id";
     public static final String INTENT_PARAM_APP_NAME = "app_name";
+    public static final String INTENT_PARAM_TYPE_BUILDS = "type_build";
 
     private static final String URI_HOST = "flyingapk";
 
-    private ListView lvListBuilds;
-    private BuildsAdapter mBuildsAdapter;
-    private Menu mOptionsMenu;
+    private final String[] TITLE_PAGES = {"All", "Debug", "Release"};
+    private final int COUNT_PAGES = TITLE_PAGES.length;
+
     private ApiHelper mApiHelper;
     private int mAppId;
     private String mAppName = "";
-    private BuildDetailsFragment mBuildDetailsFragment;
+    private String mTypeBuilds = "";
     private FilesDownloaderHelper mFilesDownloaderHelper;
     private ProgressDialog mProgressDialog;
     private boolean isDownloadingFile;
+    private ListBuildsPagerAdapter mListBuildsPagerAdapter;
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,35 +72,51 @@ public class ListBuildsActivity extends ActionBarActivity
 
                 mAppId = Tools.getIntFromString(uri.getQueryParameter(INTENT_PARAM_APP_ID));
                 mAppName = uri.getQueryParameter(INTENT_PARAM_APP_NAME);
+                mTypeBuilds = uri.getQueryParameter(INTENT_PARAM_TYPE_BUILDS);
             } else {
                 mAppId = getIntent().getIntExtra(INTENT_PARAM_APP_ID, 0);
                 mAppName = getIntent().getStringExtra(INTENT_PARAM_APP_NAME);
             }
         }
 
-        setContentView(R.layout.activity_list_apps);
+        setContentView(R.layout.activity_list_builds);
 
         getSupportActionBar().setTitle(mAppName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        mListBuildsPagerAdapter = new ListBuildsPagerAdapter(getSupportFragmentManager());
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setAdapter(mListBuildsPagerAdapter);
+
+        getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
+        for (int i = 0; i < COUNT_PAGES; i++) {
+            getSupportActionBar().addTab(getSupportActionBar()
+                    .newTab()
+                    .setText(TITLE_PAGES[i])
+                    .setTabListener(tabListener));
+        }
+
+        mViewPager.setOnPageChangeListener(mPageChangeListener);
+
+        int currentPage = 0;
+        if (mTypeBuilds.equals("debug")) {
+            currentPage = 1;
+        } else if (mTypeBuilds.equals("release")) {
+            currentPage = 2;
+        }
+
+        mViewPager.setCurrentItem(currentPage);
 
         mApiHelper = new ApiHelper(this);
         mApiHelper.onCreate();
 
         mFilesDownloaderHelper = new FilesDownloaderHelper(this);
-
-        lvListBuilds = (ListView) findViewById(R.id.lv_list_apps);
-        mBuildsAdapter = new BuildsAdapter(Tools.getLayoutInflater(this));
-        mBuildsAdapter.setListener(this);
-        lvListBuilds.setAdapter(mBuildsAdapter);
-        lvListBuilds.setOnItemClickListener(mClickOnBuild);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        mApiHelper.addListener(this);
-        mApiHelper.getListBuilds(mAppId);
 
         mFilesDownloaderHelper.setListener(this);
         mFilesDownloaderHelper.onStart();
@@ -114,62 +126,20 @@ public class ListBuildsActivity extends ActionBarActivity
     public void onStop() {
         super.onStop();
 
-        mApiHelper.removeListener(this);
-
         mFilesDownloaderHelper.onStop();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_list_builds, menu);
-
-        mOptionsMenu = menu;
-
-        return true;
+    public void showBuildDetailsDialog(String version, String fixes) {
+        BuildDetailsFragment buildDetailsFragment = BuildDetailsFragment.newInstance(version, fixes);
+        buildDetailsFragment.show(getSupportFragmentManager(), RegisterFragment.TAG);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_refresh) {
-            mApiHelper.getListBuilds(mAppId);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    public ApiHelper getApiHelper() {
+        return mApiHelper;
     }
 
-    private void setRefreshMenuItem(boolean refreshing) {
-        if (mOptionsMenu == null) {
-            return;
-        }
-
-        final MenuItem refreshItem = mOptionsMenu.findItem(R.id.action_refresh);
-        if (refreshItem != null) {
-            if (refreshing) {
-                MenuItemCompat.setActionView(refreshItem, R.layout.actionbar_indeterminate_progress);
-            } else {
-                MenuItemCompat.setActionView(refreshItem, null);
-            }
-        }
-    }
-
-    private ListView.OnItemClickListener mClickOnBuild = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Build build = mBuildsAdapter.getItem(position);
-
-            mBuildDetailsFragment = BuildDetailsFragment.newInstance(build.getVersion(), build.getFixes());
-            mBuildDetailsFragment.show(getSupportFragmentManager(), RegisterFragment.TAG);
-        }
-    };
-
-    @Override
-    public void onDownloadBuild(int position) {
-        Build build = mBuildsAdapter.getItem(position);
-
-        mFilesDownloaderHelper.getFile(build.getFileName(), build.getFileChecksum());
+    public FilesDownloaderHelper getFilesDownloaderHelper() {
+        return mFilesDownloaderHelper;
     }
 
     private void showProgressDialog() {
@@ -204,45 +174,6 @@ public class ListBuildsActivity extends ActionBarActivity
     }
 
     @Override
-    public void onStart(int code, String tag) {
-        if (code == MapApiFunctions.Request.Command.LIST_BUILDS) {
-            setRefreshMenuItem(true);
-        }
-    }
-
-    @Override
-    public void onFinish(int code, BaseResponse struct, String tag) {
-        if (code == MapApiFunctions.Response.Command.LIST_BUILDS) {
-            setRefreshMenuItem(false);
-
-            ListBuildsResponse result = (ListBuildsResponse) struct;
-
-            if (result.getCode() == 200) {
-                mBuildsAdapter.clear();
-
-                List<Build> listBuilds = result.getListBuilds();
-                for (Build item : listBuilds) {
-                    mBuildsAdapter.addItem(item);
-                }
-
-                mBuildsAdapter.notifyDataSetChanged();
-            } else {
-                List<String> listErrors = result.getErrors();
-                StringBuffer errors = new StringBuffer();
-                for (int i = 0; i < listErrors.size(); i++) {
-                    errors.append(listErrors.get(i));
-
-                    if ((i < listErrors.size() - 1) || (listErrors.size() > 1)) {
-                        errors.append("\n");
-                    }
-                }
-
-                Tools.showToast(this, errors.toString(), Toast.LENGTH_LONG);
-            }
-        }
-    }
-
-    @Override
     public void onStartDownloading() {
         showProgressDialog();
     }
@@ -265,5 +196,61 @@ public class ListBuildsActivity extends ActionBarActivity
             startActivity(intent);
         }
     }
+
+    public class ListBuildsPagerAdapter extends FragmentStatePagerAdapter {
+        public ListBuildsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0: {
+                    return ListBuildsFragment.newInstance(mAppId, ListBuildsFragment.TYPE_ALL_BUILDS);
+                }
+
+                case 1: {
+                    return ListBuildsFragment.newInstance(mAppId, ListBuildsFragment.TYPE_DEBUG_BUILDS);
+                }
+
+                case 2: {
+                    return ListBuildsFragment.newInstance(mAppId, ListBuildsFragment.TYPE_RELEASE_BUILDS);
+                }
+
+                default: {
+                    return null;
+                }
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return COUNT_PAGES;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return TITLE_PAGES[position];
+        }
+    }
+
+    private ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+            mViewPager.setCurrentItem(tab.getPosition());
+        }
+
+        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+        }
+
+        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+        }
+    };
+
+    private ViewPager.SimpleOnPageChangeListener mPageChangeListener = new ViewPager.SimpleOnPageChangeListener() {
+        @Override
+        public void onPageSelected(int position) {
+            getSupportActionBar().setSelectedNavigationItem(position);
+        }
+    };
 
 }

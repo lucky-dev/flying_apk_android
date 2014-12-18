@@ -238,6 +238,7 @@ public class ApiService extends Service {
 
                     if (!data.isEmpty()) {
                         int appId = data.getInt(MapApiFunctions.Request.Params.APP_ID);
+                        String typeBuild = data.getString(MapApiFunctions.Request.Params.TYPE_BUILD);
                         String tag = data.getString(MapApiFunctions.Request.Params.TAG_CALLER);
 
                         OkHttpClient client = new OkHttpClient();
@@ -248,6 +249,7 @@ public class ApiService extends Service {
                                 .scheme("http")
                                 .path("api/builds")
                                 .appendQueryParameter("app_id", String.valueOf(appId))
+                                .appendQueryParameter("type", typeBuild)
                                 .build();
 
                         Request request = new Request.Builder()

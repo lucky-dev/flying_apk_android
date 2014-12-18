@@ -73,8 +73,8 @@ public class ApplicationTest extends ActivityTestCase {
     public void testParseListBuildsResponseWithoutErrors() {
         String json = "{ \"api_version\": 1, \"response\": { \"builds\":" +
                 "[" +
-                "{ \"id\": 1, \"version\": \"1.0\", \"fixes\": \"All bugs were fixes\", \"created_time\": \"2014-11-24 11:40:39.557332\", \"file_name\": \"f0f34567b7f324f1d88f901d449d6c75.apk\", \"file_checksum\": \"ea6e9d41130509444421709610432ee1\" }," +
-                "{ \"id\": 2, \"version\": \"2.0\", \"fixes\": \"All bugs were fixes\", \"created_time\": \"2014-11-24 11:45:50.557332\", \"file_name\": \"0d92b2ef44c41ea5264d7615d5d270ff.apk\", \"file_checksum\": \"ea6e9d41130509444421709610432ee2\" }" +
+                "{ \"id\": 1, \"name\": \"Build #2\", \"version\": \"1.0\", \"fixes\": \"All bugs were fixes\", \"type\": \"debug\", \"created_time\": \"2014-11-24 11:40:39.557332\", \"file_name\": \"f0f34567b7f324f1d88f901d449d6c75.apk\", \"file_checksum\": \"ea6e9d41130509444421709610432ee1\" }," +
+                "{ \"id\": 2, \"name\": \"Build #1\", \"version\": \"2.0\", \"fixes\": \"All bugs were fixes\", \"type\": \"release\", \"created_time\": \"2014-11-24 11:45:50.557332\", \"file_name\": \"0d92b2ef44c41ea5264d7615d5d270ff.apk\", \"file_checksum\": \"ea6e9d41130509444421709610432ee2\" }" +
                 "] } }";
 
         ListBuildsResponse listBuildsResponse = mJsonParser.getListBuildsResponse(200, json);
@@ -84,15 +84,19 @@ public class ApplicationTest extends ActivityTestCase {
         List<Build> listBuilds = listBuildsResponse.getListBuilds();
 
         assertEquals(listBuilds.get(0).getId(), 1);
+        assertEquals(listBuilds.get(0).getName(), "Build #2");
         assertEquals(listBuilds.get(0).getVersion(), "1.0");
         assertEquals(listBuilds.get(0).getFixes(), "All bugs were fixes");
+        assertEquals(listBuilds.get(0).getType(), "debug");
         assertEquals(convertDateToFormatString(listBuilds.get(0).getCreatedTime(), "yyyy-MM-dd HH:mm:ss"), "2014-11-24 13:40:39");
         assertEquals(listBuilds.get(0).getFileName(), "f0f34567b7f324f1d88f901d449d6c75.apk");
         assertEquals(listBuilds.get(0).getFileChecksum(), "ea6e9d41130509444421709610432ee1");
 
         assertEquals(listBuilds.get(1).getId(), 2);
+        assertEquals(listBuilds.get(1).getName(), "Build #1");
         assertEquals(listBuilds.get(1).getVersion(), "2.0");
         assertEquals(listBuilds.get(1).getFixes(), "All bugs were fixes");
+        assertEquals(listBuilds.get(1).getType(), "release");
         assertEquals(convertDateToFormatString(listBuilds.get(1).getCreatedTime(), "yyyy-MM-dd HH:mm:ss"), "2014-11-24 13:45:50");
         assertEquals(listBuilds.get(1).getFileName(), "0d92b2ef44c41ea5264d7615d5d270ff.apk");
         assertEquals(listBuilds.get(1).getFileChecksum(), "ea6e9d41130509444421709610432ee2");

@@ -103,8 +103,10 @@ public class JsonParser {
 
                     Build build = new Build();
                     build.setId(JsonUtil.getIntByKeyJson(jBuild, "id"));
+                    build.setName(JsonUtil.getStringByKeyJson(jBuild, "name"));
                     build.setVersion(JsonUtil.getStringByKeyJson(jBuild, "version"));
                     build.setFixes(JsonUtil.getStringByKeyJson(jBuild, "fixes"));
+                    build.setType(JsonUtil.getStringByKeyJson(jBuild, "type"));
                     build.setCreatedTime(JsonUtil.getUtcDateByKeyJson(jBuild, "created_time", "yyyy-MM-dd HH:mm:ss"));
                     build.setFileName(JsonUtil.getStringByKeyJson(jBuild, "file_name"));
                     build.setFileChecksum(JsonUtil.getStringByKeyJson(jBuild, "file_checksum"));

@@ -12,6 +12,7 @@ public interface MapApiFunctions {
             String EMAIL = "email";
             String PASSWORD = "password";
             String APP_ID = "app_id";
+            String TYPE_BUILD = "type_build";
         }
 
         interface Command {

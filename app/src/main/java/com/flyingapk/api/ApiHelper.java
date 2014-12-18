@@ -103,15 +103,16 @@ public class ApiHelper {
         mContext.startService(apiServiceIntent);
     }
 
-    public void getListBuilds(int appId) {
-        callOnStart(MapApiFunctions.Request.Command.LIST_BUILDS, TAG);
+    public void getListBuilds(int appId, String type, String tag) {
+        callOnStart(MapApiFunctions.Request.Command.LIST_BUILDS, tag);
 
         Intent apiServiceIntent = new Intent(mContext, ApiService.class);
         apiServiceIntent.putExtra(MapApiFunctions.REQUEST, MapApiFunctions.Request.Command.LIST_BUILDS);
-        apiServiceIntent.putExtra(MapApiFunctions.Request.Params.APP_ID, appId);
 
         Bundle data = new Bundle();
-        data.putString(MapApiFunctions.Request.Params.TAG_CALLER, TAG);
+        data.putInt(MapApiFunctions.Request.Params.APP_ID, appId);
+        data.putString(MapApiFunctions.Request.Params.TYPE_BUILD, type);
+        data.putString(MapApiFunctions.Request.Params.TAG_CALLER, tag);
 
         apiServiceIntent.putExtras(data);
 
@@ -163,10 +164,12 @@ public class ApiHelper {
                 case MapApiFunctions.Response.Command.LIST_BUILDS : {
                     Bundle data = intent.getExtras();
 
+                    String tag = data.getString(MapApiFunctions.Response.Params.TAG_CALLER);
+
                     BaseResponse result = (BaseResponse) data.
                             getParcelable(MapApiFunctions.Response.Params.LIST_BUILDS_RESULT);
 
-                    callOnFinish(MapApiFunctions.Response.Command.LIST_BUILDS, result, null);
+                    callOnFinish(MapApiFunctions.Response.Command.LIST_BUILDS, result, tag);
                 } break;
             }
         }
